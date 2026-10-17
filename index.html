@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Ajar Digital: Gerak Jatuh Bebas - Fisika Kelas XI SMA</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js for realtime physics graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- MathJax for rendering LaTeX mathematical equations -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        },
+                        physics: {
+                            blue: '#0284c7',
+                            emerald: '#059669',
+                            amber: '#d97706',
+                            rose: '#e11d48'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(229, 231, 235, 0.8);
+        }
+        canvas {
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Brand Logo -->
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-brand-600 text-white rounded-xl shadow-md">
+                        <i class="fa-solid fa-atom text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-brand-600 block">Fisika SMA Kelas XI</span>
+                        <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">Gerak Jatuh Bebas (GJB)</h1>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs (Desktop) -->
+                <nav class="hidden md:flex space-x-1 lg:space-x-2">
+                    <button onclick="switchTab('overview')" id="nav-overview" class="nav-btn px-3 py-2 rounded-lg text-sm font-semibold text-brand-600 bg-brand-50 transition">
+                        <i class="fa-solid fa-compass mr-1.5"></i>Panduan & Tujuan
+                    </button>
+                    <button onclick="switchTab('concept')" id="nav-concept" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-brand-600 hover:bg-slate-100 transition">
+                        <i class="fa-solid fa-book-open mr-1.5"></i>Konsep & Rumus
+                    </button>
+                    <button onclick="switchTab('simulation')" id="nav-simulation" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-brand-600 hover:bg-slate-100 transition">
+                        <i class="fa-solid fa-flask mr-1.5"></i>Lab Virtual
+                    </button>
+                    <button onclick="switchTab('calculator')" id="nav-calculator" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-brand-600 hover:bg-slate-100 transition">
+                        <i class="fa-solid fa-calculator mr-1.5"></i>Kalkulator GJB
+                    </button>
+                    <button onclick="switchTab('quiz')" id="nav-quiz" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-brand-600 hover:bg-slate-100 transition">
+                        <i class="fa-solid fa-list-check mr-1.5"></i>Evaluasi
+                    </button>
+                </nav>
+
+                <!-- Mobile Navigation Menu Toggle -->
+                <button id="mobile-menu-btn" class="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 focus:outline-none">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu Dropdown -->
+        <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200 bg-white px-4 pt-2 pb-4 space-y-1 shadow-lg">
+            <button onclick="switchTab('overview'); toggleMobileMenu()" class="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600">
+                <i class="fa-solid fa-compass w-6"></i>Panduan & Tujuan
+            </button>
+            <button onclick="switchTab('concept'); toggleMobileMenu()" class="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600">
+                <i class="fa-solid fa-book-open w-6"></i>Konsep & Rumus
+            </button>
+            <button onclick="switchTab('simulation'); toggleMobileMenu()" class="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600">
+                <i class="fa-solid fa-flask w-6"></i>Lab Virtual
+            </button>
+            <button onclick="switchTab('calculator'); toggleMobileMenu()" class="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600">
+                <i class="fa-solid fa-calculator w-6"></i>Kalkulator GJB
+            </button>
+            <button onclick="switchTab('quiz'); toggleMobileMenu()" class="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-600">
+                <i class="fa-solid fa-list-check w-6"></i>Evaluasi & Kuis
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+        <!-- TAB 1: PANDUAN & TUJUAN PEMBELAJARAN -->
+        <section id="tab-overview" class="tab-content block space-y-6">
+            <!-- Hero Banner -->
+            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-brand-900 via-brand-700 to-indigo-800 text-white p-8 md:p-10 shadow-xl">
+                <div class="relative z-10 max-w-3xl space-y-4">
+                    <span class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-md text-white border border-white/20">
+                        <i class="fa-solid fa-graduation-cap"></i> Modul Pembelajaran Digital Interaktif
+                    </span>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight">
+                        GERAK JATUH BEBAS: <br><span class="text-indigo-200">Memahami Gerak Benda di Bawah Gravitasi</span>
+                    </h2>
+                    <p class="text-slate-200 text-base sm:text-lg leading-relaxed">
+                        Selamat datang di media pembelajaran interaktif Fisika Kelas XI SMA. Pelajari bagaimana benda bergerak hanya karena pengaruh gaya gravitasi tanpa kecepatan awal, uji coba eksperimen dalam lab virtual, dan uji pemahamanmu secara langsung!
+                    </p>
+                    <div class="pt-2 flex flex-wrap gap-3">
+                        <button onclick="switchTab('simulation')" class="px-5 py-3 bg-white text-brand-900 hover:bg-brand-50 font-bold rounded-xl shadow-lg transition flex items-center gap-2">
+                            <i class="fa-solid fa-flask"></i> Buka Lab Virtual
+                        </button>
+                        <button onclick="switchTab('concept')" class="px-5 py-3 bg-brand-800/80 hover:bg-brand-800 text-white font-semibold rounded-xl border border-white/20 transition flex items-center gap-2">
+                            <i class="fa-solid fa-book-open"></i> Pelajari Materi
+                        </button>
+                    </div>
+                </div>
+                <div class="absolute -right-10 -bottom-10 w-72 h-72 bg-indigo-500/30 rounded-full blur-3xl pointer-events-none"></div>
+            </div>
+
+            <!-- Identitas & Panduan 2x45 Menit -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Identitas Modul -->
+                <div class="glass-card rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+                    <div class="flex items-center gap-3 text-brand-600">
+                        <i class="fa-solid fa-circle-info text-2xl"></i>
+                        <h3 class="font-bold text-lg text-slate-900">Identitas Media</h3>
+                    </div>
+                    <ul class="space-y-2.5 text-sm text-slate-600">
+                        <li class="flex justify-between border-b pb-1.5"><span class="font-medium">Mata Pelajaran:</span> <span class="font-semibold text-slate-800">Fisika</span></li>
+                        <li class="flex justify-between border-b pb-1.5"><span class="font-medium">Jenjang / Kelas:</span> <span class="font-semibold text-slate-800">SMA / XI</span></li>
+                        <li class="flex justify-between border-b pb-1.5"><span class="font-medium">Topik Utama:</span> <span class="font-semibold text-slate-800">Kinematika GJB</span></li>
+                        <li class="flex justify-between border-b pb-1.5"><span class="font-medium">Alokasi Waktu:</span> <span class="font-semibold text-slate-800">2 × 45 Menit</span></li>
+                        <li class="flex justify-between"><span class="font-medium">Pendekatan:</span> <span class="font-semibold text-brand-600">Inkuiri Interaktif</span></li>
+                    </ul>
+                </div>
+
+                <!-- Alur Pembelajaran (2x45m) -->
+                <div class="glass-card md:col-span-2 rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+                    <div class="flex items-center gap-3 text-physics-emerald">
+                        <i class="fa-solid fa-clock text-2xl"></i>
+                        <h3 class="font-bold text-lg text-slate-900">Skenario Pembelajaran (2 × 45 Menit)</h3>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-emerald-50/60 p-4 rounded-xl border border-emerald-100 space-y-1">
+                            <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider">Tahap 1 (15 Menit)</span>
+                            <h4 class="font-bold text-slate-900 text-sm">Apersepsi & Konsep</h4>
+                            <p class="text-xs text-slate-600">Diskusi mitos/fakta "Benda berat jatuh lebih cepat", pengenalan syarat Gerak Jatuh Bebas.</p>
+                        </div>
+                        <div class="bg-indigo-50/60 p-4 rounded-xl border border-indigo-100 space-y-1">
+                            <span class="text-xs font-bold text-indigo-700 uppercase tracking-wider">Tahap 2 (45 Menit)</span>
+                            <h4 class="font-bold text-slate-900 text-sm">Eksplorasi Lab Virtual</h4>
+                            <p class="text-xs text-slate-600">Simulasi variabel $h$, $g$, serta pengaruh hambatan udara. Membaca grafik $h(t)$ dan $v(t)$.</p>
+                        </div>
+                        <div class="bg-amber-50/60 p-4 rounded-xl border border-amber-100 space-y-1">
+                            <span class="text-xs font-bold text-amber-700 uppercase tracking-wider">Tahap 3 (30 Menit)</span>
+                            <h4 class="font-bold text-slate-900 text-sm">Evaluasi & Refleksi</h4>
+                            <p class="text-xs text-slate-600">Menghitung matematis via Kalkulator dan menyelesaikan Kuis Interaktif dengan analisis langsung.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tujuan Pembelajaran & Indikator (TP/ATP) -->
+            <div class="glass-card rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+                <h3 class="font-bold text-lg text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-bullseye text-brand-600"></i> Tujuan Pembelajaran (Capaian Pembelajaran)
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div class="flex items-start gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
+                        <div class="p-2 bg-brand-100 text-brand-600 rounded-lg font-bold">1</div>
+                        <div>
+                            <strong class="text-slate-900 block">Menjelaskan Karakteristik GJB</strong>
+                            <p class="text-slate-600 text-xs">Peserta didik mampu mendefinisikan syarat terjadinya Gerak Jatuh Bebas ($v_0 = 0$, $a = g$, mengabaikan gesekan udara).</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
+                        <div class="p-2 bg-brand-100 text-brand-600 rounded-lg font-bold">2</div>
+                        <div>
+                            <strong class="text-slate-900 block">Menganalisis Hubungan Variabel Kinematika</strong>
+                            <p class="text-slate-600 text-xs">Peserta didik mampu menganalisis hubungan antara waktu jatuh ($t$), ketinggian ($h$), dan kecepatan ($v$) secara sistematis.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
+                        <div class="p-2 bg-brand-100 text-brand-600 rounded-lg font-bold">3</div>
+                        <div>
+                            <strong class="text-slate-900 block">Interpretasi Grafik Gerak</strong>
+                            <p class="text-slate-600 text-xs">Peserta didik mampu membaca dan memprediksi grafik posisi terhadap waktu ($h-t$) serta kecepatan terhadap waktu ($v-t$).</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
+                        <div class="p-2 bg-brand-100 text-brand-600 rounded-lg font-bold">4</div>
+                        <div>
+                            <strong class="text-slate-900 block">Memecahkan Masalah Konseptual & Hitungan</strong>
+                            <p class="text-slate-600 text-xs">Peserta didik mampu mengaplikasikan persamaan GJB untuk menyelesaikan soal kuantitatif dalam kehidupan sehari-hari.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: KONSEP & RUMUS MATERI -->
+        <section id="tab-concept" class="tab-content hidden space-y-6">
+            <!-- Header Section -->
+            <div class="border-b border-slate-200 pb-4">
+                <span class="text-brand-600 font-bold text-xs uppercase tracking-wider">Materi Pembelajaran</span>
+                <h2 class="text-2xl font-extrabold text-slate-900">Konsep Esensial Gerak Jatuh Bebas</h2>
+                <p class="text-slate-600 text-sm">Pahami prinsip fisika dasar di balik benda yang jatuh di bawah gravitasi.</p>
+            </div>
+
+            <!-- Interactive Misconception vs Reality -->
+            <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6 space-y-4">
+                <div class="flex items-center gap-2 text-amber-800 font-bold text-lg">
+                    <i class="fa-solid fa-lightbulb text-amber-600"></i> Mitos vs Fakta Fisika!
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div class="bg-white p-4 rounded-xl border border-amber-200 space-y-2">
+                        <span class="inline-block px-2 py-0.5 bg-rose-100 text-rose-700 font-bold text-xs rounded">Mitos Populer</span>
+                        <p class="text-slate-700 font-medium">"Benda yang lebih berat (seperti batu) pasti jatuh lebih cepat daripada benda ringan (seperti bulu ayam)."</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-amber-200 space-y-2">
+                        <span class="inline-block px-2 py-0.5 bg-emerald-100 text-emerald-700 font-bold text-xs rounded">Fakta Fisika</span>
+                        <p class="text-slate-700 font-medium">Dalam ruang hampa (tanpa gesekan udara), <strong>semua benda jatuh dengan percepatan yang sama ($g$)</strong>, sehingga sampai di tanah pada waktu yang bersamaan!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Concept Details Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Definisi GJB -->
+                <div class="glass-card p-6 rounded-2xl border border-slate-200 space-y-3">
+                    <div class="w-10 h-10 bg-brand-100 text-brand-600 rounded-xl flex items-center justify-center font-bold text-lg">
+                        1
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-base">Apa itu Gerak Jatuh Bebas?</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        Gerak Jatuh Bebas (GJB) adalah gerak lurus berubah beraturan (GLBB) pada lintasan vertikal menuju pusat bumi, di mana benda dijatuhkan <strong>tanpa kecepatan awal ($v_0 = 0$)</strong> dan hambat udara diabaikan.
+                    </p>
+                </div>
+
+                <!-- Peranan Gravitasi -->
+                <div class="glass-card p-6 rounded-2xl border border-slate-200 space-y-3">
+                    <div class="w-10 h-10 bg-physics-blue/10 text-physics-blue rounded-xl flex items-center justify-center font-bold text-lg">
+                        2
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-base">Percepatan Gravitasi ($g$)</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        Satu-satunya gaya yang bekerja pada benda adalah gaya gravitasi. Benda mengalami percepatan konstan $g \approx 9,8\text{ m/s}^2$ (sering digenapkan menjadi $10\text{ m/s}^2$ dalam perhitungan sederhana).
+                    </p>
+                </div>
+
+                <!-- Ciri-Ciri Utama GJB -->
+                <div class="glass-card p-6 rounded-2xl border border-slate-200 space-y-3">
+                    <div class="w-10 h-10 bg-physics-emerald/10 text-physics-emerald rounded-xl flex items-center justify-center font-bold text-lg">
+                        3
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-base">Ciri Karakteristik Utama</h3>
+                    <ul class="text-sm text-slate-600 space-y-1.5 list-disc list-inside">
+                        <li>Kecepatan awal nol ($v_0 = 0$)</li>
+                        <li>Arah gerak selalu ke bawah</li>
+                        <li>Percepatan bernilai positif ($a = +g$)</li>
+                        <li>Massa benda tidak memengaruhi waktu jatuh dalam ruang hampa</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Mathematical Formulas (MathJax) -->
+            <div class="glass-card p-6 rounded-2xl border border-slate-200 space-y-6">
+                <h3 class="font-bold text-slate-900 text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-square-root-variable text-brand-600"></i> Persamaan Matematis Gerak Jatuh Bebas
+                </h3>
+                <p class="text-sm text-slate-600">
+                    Persamaan GJB diturunkan dari rumus umum GLBB dengan mengganti $v_0 = 0$, percepatan $a = g$, dan jarak $s = h$ (ketinggian).
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Rumus 1 -->
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 text-center space-y-2 shadow-xs">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Kecepatan Saat Waktu $t$</span>
+                        <div class="text-2xl font-bold text-brand-600 py-2">
+                            $$v_t = g \cdot t$$
+                        </div>
+                        <p class="text-xs text-slate-500">Semakin lama jatuh, kecepatan benda bertambah secara linier.</p>
+                    </div>
+
+                    <!-- Rumus 2 -->
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 text-center space-y-2 shadow-xs">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Ketinggian / Jarak Tempuh</span>
+                        <div class="text-2xl font-bold text-brand-600 py-2">
+                            $$h = \frac{1}{2} g t^2$$
+                        </div>
+                        <p class="text-xs text-slate-500">Jarak tempuh sebanding dengan kuadrat waktu yang ditempuh.</p>
+                    </div>
+
+                    <!-- Rumus 3 -->
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 text-center space-y-2 shadow-xs">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Kecepatan Berdasarkan Ketinggian</span>
+                        <div class="text-2xl font-bold text-brand-600 py-2">
+                            $$v_t = \sqrt{2 g h}$$
+                        </div>
+                        <p class="text-xs text-slate-500">Kecepatan benda saat menyentuh tanah atau pada jarak $h$.</p>
+                    </div>
+                </div>
+
+                <!-- Keterangan Simbol -->
+                <div class="bg-slate-100 p-4 rounded-xl text-xs sm:text-sm text-slate-700 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div><strong>$v_t$</strong> = Kecepatan pada waktu $t$ ($\text{m/s}$)</div>
+                    <div><strong>$h$</strong> = Ketinggian / Jarak tempuh ($\text{m}$)</div>
+                    <div><strong>$t$</strong> = Waktu tempuh ($\text{s}$)</div>
+                    <div><strong>$g$</strong> = Percepatan gravitasi ($\text{m/s}^2$)</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: LABORATORIUM VIRTUAL (SIMULASI INTERAKTIF) -->
+        <section id="tab-simulation" class="tab-content hidden space-y-6">
+            <!-- Title -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200 pb-4 gap-2">
+                <div>
+                    <span class="text-brand-600 font-bold text-xs uppercase tracking-wider">Laboratorium Eksperimen Virtual</span>
+                    <h2 class="text-2xl font-extrabold text-slate-900">Simulasi Interaktif Gerak Jatuh Bebas</h2>
+                </div>
+                <div class="text-xs bg-brand-50 text-brand-700 px-3 py-1.5 rounded-lg border border-brand-200 font-medium">
+                    <i class="fa-solid fa-flask-vial mr-1"></i> Eksplorasi Variabel $h$, $g$, dan Hambatan Udara
+                </div>
+            </div>
+
+            <!-- Main Simulation Canvas + Controls Layout -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Left Column: Controls & Object Selector (4 cols) -->
+                <div class="lg:col-span-4 space-y-5 glass-card p-5 rounded-2xl border border-slate-200">
+                    <h3 class="font-bold text-slate-900 text-sm uppercase tracking-wide border-b pb-2">
+                        <i class="fa-solid fa-sliders text-brand-600 mr-1"></i> Parameter Eksperimen
+                    </h3>
+
+                    <!-- Pilihan Objek -->
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-700">Pilih Objek Uji:</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="selectObject('apple')" id="obj-apple" class="obj-btn p-2.5 rounded-xl border-2 border-brand-600 bg-brand-50 text-slate-800 text-xs font-semibold flex flex-col items-center gap-1">
+                                <span class="text-xl">🍎</span> Apel (0.2 kg)
+                            </button>
+                            <button onclick="selectObject('stone')" id="obj-stone" class="obj-btn p-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-xs font-semibold flex flex-col items-center gap-1 hover:border-brand-300">
+                                <span class="text-xl">🪨</span> Batu (2.0 kg)
+                            </button>
+                            <button onclick="selectObject('feather')" id="obj-feather" class="obj-btn p-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-xs font-semibold flex flex-col items-center gap-1 hover:border-brand-300">
+                                <span class="text-xl">🪶</span> Bulu (0.005 kg)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Ketinggian Awal (h) Slider -->
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between items-center text-xs font-bold text-slate-700">
+                            <label for="slider-h">Ketinggian Awal ($h$):</label>
+                            <span id="val-h" class="text-brand-600 font-extrabold text-sm">20 m</span>
+                        </div>
+                        <input type="range" id="slider-h" min="5" max="100" value="20" step="5" class="w-full accent-brand-600 bg-slate-200 rounded-lg cursor-pointer">
+                    </div>
+
+                    <!-- Gravitasi (g) Slider -->
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between items-center text-xs font-bold text-slate-700">
+                            <label for="slider-g">Gravitasi ($g$):</label>
+                            <span id="val-g" class="text-brand-600 font-extrabold text-sm">9.8 m/s²</span>
+                        </div>
+                        <input type="range" id="slider-g" min="1.6" max="25" value="9.8" step="0.1" class="w-full accent-brand-600 bg-slate-200 rounded-lg cursor-pointer">
+                        <div class="flex gap-1 text-[10px] text-slate-500 justify-between">
+                            <span onclick="setG(1.6)" class="cursor-pointer hover:text-brand-600 underline">Bulan (1.6)</span>
+                            <span onclick="setG(9.8)" class="cursor-pointer hover:text-brand-600 underline">Bumi (9.8)</span>
+                            <span onclick="setG(24.8)" class="cursor-pointer hover:text-brand-600 underline">Yupiter (24.8)</span>
+                        </div>
+                    </div>
+
+                    <!-- Toggle Hambatan Udara (Vacuum vs Air) -->
+                    <div class="p-3 bg-slate-100 rounded-xl space-y-2">
+                        <label class="text-xs font-bold text-slate-700 block">Kondisi Lingkungan:</label>
+                        <div class="flex items-center justify-between text-xs font-semibold">
+                            <span id="label-env" class="text-slate-600">Ruang Hampa (Vakum)</span>
+                            <button id="toggle-air" onclick="toggleAirResistance()" class="px-3 py-1 bg-slate-200 text-slate-700 rounded-lg transition hover:bg-slate-300">
+                                Ubah ke Udara Biasa
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="pt-2 flex gap-2">
+                        <button id="btn-start" onclick="startSimulation()" class="flex-1 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-play"></i> Jatuhkan!
+                        </button>
+                        <button id="btn-reset" onclick="resetSimulation()" class="px-4 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl transition">
+                            <i class="fa-solid fa-rotate-left"></i>
+                        </button>
+                    </div>
+
+                    <!-- Telemetry & Metrics Output -->
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t text-center">
+                        <div class="bg-slate-100 p-2.5 rounded-xl">
+                            <span class="text-[10px] font-bold uppercase text-slate-500 block">Waktu Jatuh ($t$)</span>
+                            <span id="tele-time" class="text-lg font-extrabold text-slate-800">0.00 s</span>
+                        </div>
+                        <div class="bg-slate-100 p-2.5 rounded-xl">
+                            <span class="text-[10px] font-bold uppercase text-slate-500 block">Kecepatan ($v_t$)</span>
+                            <span id="tele-vel" class="text-lg font-extrabold text-slate-800">0.00 m/s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Middle Column: Canvas Physics Animation (4 cols) -->
+                <div class="lg:col-span-4 bg-slate-900 rounded-2xl p-4 flex flex-col items-center justify-between relative shadow-inner overflow-hidden min-h-[420px]">
+                    <div class="w-full flex justify-between items-center text-xs text-slate-400 z-10">
+                        <span><i class="fa-solid fa-video text-rose-500 mr-1 animate-pulse"></i> Visualisasi Jatuh</span>
+                        <span id="canvas-status" class="bg-slate-800 px-2.5 py-1 rounded-md text-slate-300 font-mono">Siap</span>
+                    </div>
+
+                    <!-- HTML5 Canvas for Physics Drawing -->
+                    <canvas id="simCanvas" width="280" height="340" class="w-full h-full my-2 relative z-0"></canvas>
+
+                    <!-- Ground Indicator -->
+                    <div class="w-full bg-slate-800 border-t border-emerald-500/50 py-1.5 text-center text-[11px] font-mono text-emerald-400 z-10">
+                        PERMUKAAN TANAH (h = 0 m)
+                    </div>
+                </div>
+
+                <!-- Right Column: Real-time Dynamic Charts (4 cols) -->
+                <div class="lg:col-span-4 space-y-4 flex flex-col justify-between">
+                    <div class="glass-card p-4 rounded-2xl border border-slate-200 space-y-2 flex-1">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-xs font-bold uppercase text-slate-600">Grafik Ketinggian vs Waktu $h(t)$</h4>
+                            <span class="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded font-semibold">Parabolik Turun</span>
+                        </div>
+                        <div class="h-36 relative">
+                            <canvas id="chartH"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-4 rounded-2xl border border-slate-200 space-y-2 flex-1">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-xs font-bold uppercase text-slate-600">Grafik Kecepatan vs Waktu $v(t)$</h4>
+                            <span class="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded font-semibold">Linier Naik</span>
+                        </div>
+                        <div class="h-36 relative">
+                            <canvas id="chartV"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: KALKULATOR MATEMATIS GJB -->
+        <section id="tab-calculator" class="tab-content hidden space-y-6">
+            <div class="border-b border-slate-200 pb-4">
+                <span class="text-brand-600 font-bold text-xs uppercase tracking-wider">Alat Bantu Hitung</span>
+                <h2 class="text-2xl font-extrabold text-slate-900">Kalkulator Fisika Gerak Jatuh Bebas</h2>
+                <p class="text-slate-600 text-sm">Hitung variabel $h$, $v_t$, atau $t$ secara otomatis beserta langkah penyelesaiannya.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Mode 1: Hitung v dan t dari h -->
+                <div class="glass-card p-6 rounded-2xl border border-slate-200 space-y-4">
+                    <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-down-long text-brand-600"></i> Cari $v_t$ & $t$ dari Ketinggian ($h$)
+                    </h3>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Ketinggian $h$ (meter):</label>
+                            <input type="number" id="calc1-h" value="45" min="0" class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Gravitasi $g$ (m/s²):</label>
+                            <input type="number" id="calc1-g" value="9.8" step="0.1" class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                        </div>
+                        <button onclick="calculateMode1()" class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl transition">Hitung Hasil</button>
+                    </div>
+                    <div id="calc1-result" class="hidden bg-slate-100 p-3 rounded-xl text-xs space-y-1 font-mono">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Mode 2: Hitung h dan v dari t -->
+                <div class="glass-card p-6 rounded-2xl border border-slate-200 space-y-4">
+                    <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-stopwatch text-physics-emerald"></i> Cari $h$ & $v_t$ dari Waktu ($t$)
+                    </h3>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Waktu Tempuh $t$ (detik):</label>
+                            <input type="number" id="calc2-t" value="3" min="0" step="0.1" class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Gravitasi $g$ (m/s²):</label>
+                            <input type="number" id="calc2-g" value="9.8" step="0.1" class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                        </div>
+                        <button onclick="calculateMode2()" class="w-full py-2.5 bg-physics-emerald hover:bg-emerald-700 text-white font-semibold rounded-xl transition">Hitung Hasil</button>
+                    </div>
+                    <div id="calc2-result" class="hidden bg-slate-100 p-3 rounded-xl text-xs space-y-1 font-mono">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Mode 3: Hitung h dan t dari Kecepatan Akhir -->
+                <div class="glass-card p-6 rounded-2xl border border-slate-200 space-y-4">
+                    <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-gauge-high text-physics-amber"></i> Cari $h$ & $t$ dari Kecepatan ($v_t$)
+                    </h3>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Kecepatan Akhir $v_t$ (m/s):</label>
+                            <input type="number" id="calc3-v" value="20" min="0" class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Gravitasi $g$ (m/s²):</label>
+                            <input type="number" id="calc3-g" value="9.8" step="0.1" class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                        </div>
+                        <button onclick="calculateMode3()" class="w-full py-2.5 bg-physics-amber hover:bg-amber-700 text-white font-semibold rounded-xl transition">Hitung Hasil</button>
+                    </div>
+                    <div id="calc3-result" class="hidden bg-slate-100 p-3 rounded-xl text-xs space-y-1 font-mono">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: EVALUASI & KUIS INTERAKTIF -->
+        <section id="tab-quiz" class="tab-content hidden space-y-6">
+            <div class="border-b border-slate-200 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <span class="text-brand-600 font-bold text-xs uppercase tracking-wider">Uji Pemahaman Mandiri</span>
+                    <h2 class="text-2xl font-extrabold text-slate-900">Evaluasi Interaktif GJB</h2>
+                </div>
+                <div id="quiz-score-badge" class="hidden bg-brand-50 text-brand-700 px-4 py-2 rounded-xl border border-brand-200 font-bold text-sm">
+                    Skor Anda: <span id="quiz-score-val">0</span> / 100
+                </div>
+            </div>
+
+            <!-- Quiz Container -->
+            <div id="quiz-container" class="space-y-6">
+                <!-- Quiz questions dynamically rendered via JavaScript -->
+            </div>
+
+            <!-- Quiz Action Controls -->
+            <div class="flex justify-between items-center pt-4">
+                <button onclick="resetQuiz()" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl transition text-sm">
+                    <i class="fa-solid fa-rotate-left mr-1.5"></i> Ulangi Kuis
+                </button>
+                <button onclick="submitQuiz()" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-md transition text-sm">
+                    <i class="fa-solid fa-paper-plane mr-1.5"></i> Selesai & Periksa Jawaban
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 space-y-2">
+            <p class="font-medium text-slate-700">Media Ajar Digital Interaktif Fisika Kelas XI SMA — Gerak Jatuh Bebas</p>
+            <p>Dirancang sesuai Standar Pembelajaran Fisika SMA/MA (Kurikulum Merdeka)</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- 1. NAVIGATION TAB SWITCHING SYSTEM ---
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('block'));
+            
+            // Show selected tab
+            const selectedTab = document.getElementById('tab-' + tabId);
+            if (selectedTab) {
+                selectedTab.classList.remove('hidden');
+                selectedTab.classList.add('block');
+            }
+
+            // Update Navigation active state styling
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-brand-600', 'bg-brand-50');
+                btn.classList.add('text-slate-600');
+            });
+            const activeNav = document.getElementById('nav-' + tabId);
+            if (activeNav) {
+                activeNav.classList.add('text-brand-600', 'bg-brand-50');
+                activeNav.classList.remove('text-slate-600');
+            }
+
+            // Trigger window resize event so Canvas and Chart.js properly fit container
+            window.dispatchEvent(new Event('resize'));
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        document.getElementById('mobile-menu-btn').addEventListener('click', toggleMobileMenu);
+
+
+        // --- 2. PHYSICS SIMULATION ENGINE & ANIMATION CANVAS ---
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Physics State Variables
+        let simState = {
+            running: false,
+            h0: 20,          // initial height (meters)
+            g: 9.8,          // gravity acceleration (m/s2)
+            time: 0,         // current elapsed time (seconds)
+            timeStep: 0.02,  // delta time per frame
+            objectType: 'apple',
+            airResistance: false,
+            yPosMeter: 20,   // current height (meters)
+            velocity: 0,     // current velocity (m/s)
+            dragCoeff: 0.1,  // air resistance constant
+            mass: 0.2,       // mass in kg
+            animFrameId: null
+        };
+
+        const objectMetadata = {
+            apple: { emoji: '🍎', size: 24, mass: 0.2, drag: 0.05 },
+            stone: { emoji: '🪨', size: 22, mass: 2.0, drag: 0.02 },
+            feather: { emoji: '🪶', size: 28, mass: 0.005, drag: 0.8 }
+        };
+
+        // DOM Controls
+        const sliderH = document.getElementById('slider-h');
+        const sliderG = document.getElementById('slider-g');
+        const valH = document.getElementById('val-h');
+        const valG = document.getElementById('val-g');
+        const teleTime = document.getElementById('tele-time');
+        const teleVel = document.getElementById('tele-vel');
+
+        // Sync Sliders with UI
+        sliderH.addEventListener('input', (e) => {
+            simState.h0 = parseFloat(e.target.value);
+            valH.innerText = simState.h0 + ' m';
+            if (!simState.running) resetSimulation();
+        });
+
+        sliderG.addEventListener('input', (e) => {
+            simState.g = parseFloat(e.target.value);
+            valG.innerText = simState.g.toFixed(1) + ' m/s²';
+            if (!simState.running) resetSimulation();
+        });
+
+        function setG(val) {
+            sliderG.value = val;
+            simState.g = val;
+            valG.innerText = val.toFixed(1) + ' m/s²';
+            if (!simState.running) resetSimulation();
+        }
+
+        function selectObject(objKey) {
+            simState.objectType = objKey;
+            simState.mass = objectMetadata[objKey].mass;
+            simState.dragCoeff = objectMetadata[objKey].drag;
+
+            // Update UI buttons styling
+            document.querySelectorAll('.obj-btn').forEach(btn => {
+                btn.classList.remove('border-brand-600', 'bg-brand-50');
+                btn.classList.add('border-slate-200', 'bg-white');
+            });
+            const activeObjBtn = document.getElementById('obj-' + objKey);
+            if (activeObjBtn) {
+                activeObjBtn.classList.add('border-brand-600', 'bg-brand-50');
+                activeObjBtn.classList.remove('border-slate-200', 'bg-white');
+            }
+
+            if (!simState.running) resetSimulation();
+        }
+
+        function toggleAirResistance() {
+            simState.airResistance = !simState.airResistance;
+            const label = document.getElementById('label-env');
+            const btn = document.getElementById('toggle-air');
+            if (simState.airResistance) {
+                label.innerText = 'Udara Biasa (Ada Gesekan)';
+                label.classList.add('text-amber-600');
+                btn.innerText = 'Ubah ke Ruang Hampa';
+            } else {
+                label.innerText = 'Ruang Hampa (Vakum)';
+                label.classList.remove('text-amber-600');
+                btn.innerText = 'Ubah ke Udara Biasa';
+            }
+            if (!simState.running) resetSimulation();
+        }
+
+        // Initialize Chart.js Instances
+        let chartH, chartV;
+        function initCharts() {
+            const ctxH = document.getElementById('chartH').getContext('2d');
+            const ctxV = document.getElementById('chartV').getContext('2d');
+
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                scales: {
+                    x: { title: { display: true, text: 't (s)', font: { size: 10 } }, ticks: { font: { size: 9 } } },
+                    y: { ticks: { font: { size: 9 } } }
+                },
+                plugins: { legend: { display: false } }
+            };
+
+            chartH = new Chart(ctxH, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Ketinggian (m)',
+                        data: [],
+                        borderColor: '#6366f1',
+                        borderWidth: 2,
+                        fill: false,
+                        pointRadius: 0
+                    }]
+                },
+                options: { ...commonOptions, scales: { ...commonOptions.scales, y: { title: { display: true, text: 'h (m)', font: { size: 10 } } } } }
+            });
+
+            chartV = new Chart(ctxV, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Kecepatan (m/s)',
+                        data: [],
+                        borderColor: '#059669',
+                        borderWidth: 2,
+                        fill: false,
+                        pointRadius: 0
+                    }]
+                },
+                options: { ...commonOptions, scales: { ...commonOptions.scales, y: { title: { display: true, text: 'v (m/s)', font: { size: 10 } } } } }
+            });
+        }
+
+        function drawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const padding = 30;
+            const drawHeight = canvas.height - padding * 2;
+
+            // Draw Height Meter Scale Lines
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(40, padding);
+            ctx.lineTo(40, canvas.height - padding);
+            ctx.stroke();
+
+            // Ticks
+            const tickCount = 5;
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '10px monospace';
+            for (let i = 0; i <= tickCount; i++) {
+                const tickY = padding + (drawHeight / tickCount) * i;
+                const hVal = (simState.h0 * (1 - i / tickCount)).toFixed(0);
+                ctx.beginPath();
+                ctx.moveTo(35, tickY);
+                ctx.lineTo(45, tickY);
+                ctx.stroke();
+                ctx.fillText(hVal + 'm', 5, tickY + 3);
+            }
+
+            // Calculate object Y position in pixels
+            const currentH = Math.max(0, simState.yPosMeter);
+            const ratio = currentH / simState.h0;
+            const pixelY = padding + drawHeight * (1 - ratio);
+
+            // Draw Object Emoji
+            const emoji = objectMetadata[simState.objectType].emoji;
+            ctx.font = '28px serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(emoji, canvas.width / 2 + 10, pixelY);
+
+            // Velocity Vector Arrow
+            if (simState.velocity > 0.1) {
+                const arrowLength = Math.min(60, simState.velocity * 2);
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(canvas.width / 2 + 10, pixelY + 15);
+                ctx.lineTo(canvas.width / 2 + 10, pixelY + 15 + arrowLength);
+                ctx.stroke();
+
+                // Arrowhead
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath();
+                ctx.moveTo(canvas.width / 2 + 5, pixelY + 10 + arrowLength);
+                ctx.lineTo(canvas.width / 2 + 15, pixelY + 10 + arrowLength);
+                ctx.lineTo(canvas.width / 2 + 10, pixelY + 18 + arrowLength);
+                ctx.fill();
+            }
+        }
+
+        function updatePhysics() {
+            if (!simState.running) return;
+
+            simState.time += simState.timeStep;
+
+            if (!simState.airResistance) {
+                // Standard Vacuum GJB Equations
+                simState.velocity = simState.g * simState.time;
+                simState.yPosMeter = simState.h0 - 0.5 * simState.g * Math.pow(simState.time, 2);
+            } else {
+                // Euler integration with Air Drag Force: F_drag = c * v^2
+                const drag = simState.dragCoeff * Math.pow(simState.velocity, 2);
+                const accel = simState.g - (drag / simState.mass);
+                simState.velocity += accel * simState.timeStep;
+                simState.yPosMeter -= simState.velocity * simState.timeStep;
+            }
+
+            // Check ground collision
+            if (simState.yPosMeter <= 0) {
+                simState.yPosMeter = 0;
+                simState.running = false;
+                document.getElementById('canvas-status').innerText = 'Selesai';
+                document.getElementById('canvas-status').classList.replace('bg-slate-800', 'bg-emerald-800');
+            }
+
+            // Update Telemetry Display
+            teleTime.innerText = simState.time.toFixed(2) + ' s';
+            teleVel.innerText = simState.velocity.toFixed(2) + ' m/s';
+
+            // Push Data to Dynamic Charts
+            chartH.data.labels.push(simState.time.toFixed(1));
+            chartH.data.datasets[0].data.push(simState.yPosMeter.toFixed(2));
+            chartH.update();
+
+            chartV.data.labels.push(simState.time.toFixed(1));
+            chartV.data.datasets[0].data.push(simState.velocity.toFixed(2));
+            chartV.update();
+
+            drawCanvas();
+
+            if (simState.running) {
+                simState.animFrameId = requestAnimationFrame(updatePhysics);
+            }
+        }
+
+        function startSimulation() {
+            if (simState.running) return;
+            resetSimulation();
+            simState.running = true;
+            document.getElementById('canvas-status').innerText = 'Jatuh...';
+            document.getElementById('canvas-status').classList.add('bg-slate-800');
+            updatePhysics();
+        }
+
+        function resetSimulation() {
+            simState.running = false;
+            if (simState.animFrameId) cancelAnimationFrame(simState.animFrameId);
+            simState.time = 0;
+            simState.yPosMeter = simState.h0;
+            simState.velocity = 0;
+
+            teleTime.innerText = '0.00 s';
+            teleVel.innerText = '0.00 m/s';
+
+            document.getElementById('canvas-status').innerText = 'Siap';
+            document.getElementById('canvas-status').className = 'bg-slate-800 px-2.5 py-1 rounded-md text-slate-300 font-mono';
+
+            // Clear Charts
+            chartH.data.labels = [];
+            chartH.data.datasets[0].data = [];
+            chartH.update();
+
+            chartV.data.labels = [];
+            chartV.data.datasets[0].data = [];
+            chartV.update();
+
+            drawCanvas();
+        }
+
+
+        // --- 3. MATHEMATICAL CALCULATOR ENGINE ---
+        function calculateMode1() {
+            const h = parseFloat(document.getElementById('calc1-h').value);
+            const g = parseFloat(document.getElementById('calc1-g').value);
+            const resBox = document.getElementById('calc1-result');
+
+            if (isNaN(h) || isNaN(g) || h <= 0 || g <= 0) {
+                resBox.classList.remove('hidden');
+                resBox.innerHTML = '<span class="text-rose-600">Masukkan nilai positif yang valid!</span>';
+                return;
+            }
+
+            const t = Math.sqrt((2 * h) / g);
+            const v = g * t;
+
+            resBox.classList.remove('hidden');
+            resBox.innerHTML = `
+                <div class="font-bold text-slate-800 border-b pb-1 mb-1">Hasil Perhitungan:</div>
+                <div>Waktu jatuh ($t$): <strong>${t.toFixed(2)} detik</strong></div>
+                <div>Kecepatan akhir ($v_t$): <strong>${v.toFixed(2)} m/s</strong></div>
+                <div class="text-[10px] text-slate-500 mt-1">Langkah: $t = \\sqrt{\\frac{2h}{g}} = \\sqrt{\\frac{2(${h})}{${g}}}$; $v_t = g \\cdot t$</div>
+            `;
+            if (window.MathJax) MathJax.typesetPromise();
+        }
+
+        function calculateMode2() {
+            const t = parseFloat(document.getElementById('calc2-t').value);
+            const g = parseFloat(document.getElementById('calc2-g').value);
+            const resBox = document.getElementById('calc2-result');
+
+            if (isNaN(t) || isNaN(g) || t <= 0 || g <= 0) {
+                resBox.classList.remove('hidden');
+                resBox.innerHTML = '<span class="text-rose-600">Masukkan nilai positif yang valid!</span>';
+                return;
+            }
+
+            const h = 0.5 * g * Math.pow(t, 2);
+            const v = g * t;
+
+            resBox.classList.remove('hidden');
+            resBox.innerHTML = `
+                <div class="font-bold text-slate-800 border-b pb-1 mb-1">Hasil Perhitungan:</div>
+                <div>Ketinggian ($h$): <strong>${h.toFixed(2)} meter</strong></div>
+                <div>Kecepatan akhir ($v_t$): <strong>${v.toFixed(2)} m/s</strong></div>
+                <div class="text-[10px] text-slate-500 mt-1">Langkah: $h = \\frac{1}{2} g t^2 = 0.5 \\times ${g} \\times ${t}^2$</div>
+            `;
+            if (window.MathJax) MathJax.typesetPromise();
+        }
+
+        function calculateMode3() {
+            const v = parseFloat(document.getElementById('calc3-v').value);
+            const g = parseFloat(document.getElementById('calc3-g').value);
+            const resBox = document.getElementById('calc3-result');
+
+            if (isNaN(v) || isNaN(g) || v <= 0 || g <= 0) {
+                resBox.classList.remove('hidden');
+                resBox.innerHTML = '<span class="text-rose-600">Masukkan nilai positif yang valid!</span>';
+                return;
+            }
+
+            const t = v / g;
+            const h = Math.pow(v, 2) / (2 * g);
+
+            resBox.classList.remove('hidden');
+            resBox.innerHTML = `
+                <div class="font-bold text-slate-800 border-b pb-1 mb-1">Hasil Perhitungan:</div>
+                <div>Waktu jatuh ($t$): <strong>${t.toFixed(2)} detik</strong></div>
+                <div>Ketinggian asal ($h$): <strong>${h.toFixed(2)} meter</strong></div>
+                <div class="text-[10px] text-slate-500 mt-1">Langkah: $t = \\frac{v_t}{g}$; $h = \\frac{v_t^2}{2g}$</div>
+            `;
+            if (window.MathJax) MathJax.typesetPromise();
+        }
+
+
+        // --- 4. INTERACTIVE QUIZ & EVALUATION SYSTEM ---
+        const quizData = [
+            {
+                q: "1. Syarat utama sebuah benda dikategorikan mengalami Gerak Jatuh Bebas (GJB) adalah...",
+                options: [
+                    "Benda dijatuhkan dengan kecepatan awal tertentu ke bawah",
+                    "Kecepatan awal benda sama dengan nol ($v_0 = 0$) dan gesekan udara diabaikan",
+                    "Massa benda harus sangat berat agar percepatan gravitasi bekerja penuh",
+                    "Benda dilempar ke atas hingga mencapai titik tertinggi"
+                ],
+                correct: 1,
+                explanation: "GJB didefinisikan sebagai gerak lurus berubah beraturan pada lintasan vertikal tanpa kecepatan awal ($v_0 = 0$) dan gaya luar selain gravitasi (seperti gesekan udara) diabaikan."
+            },
+            {
+                q: "2. Sebuah batu dijatuhkan dari atas jembatan tanpa kecepatan awal dan menyentuh permukaan air dalam waktu 3 detik. Jika $g = 10\\text{ m/s}^2$, berapa ketinggian jembatan tersebut?",
+                options: [
+                    "15 meter",
+                    "30 meter",
+                    "45 meter",
+                    "90 meter"
+                ],
+                correct: 2,
+                explanation: "Menggunakan rumus $h = \\frac{1}{2} g t^2 = \\frac{1}{2} (10) (3)^2 = 5 \\times 9 = 45\\text{ meter}$."
+            },
+            {
+                q: "3. Di dalam sebuah tabung hampa udara, sebutir kelereng dan selembar bulu ayam dijatuhkan bersamaan dari ketinggian yang sama. Hal yang akan terjadi adalah...",
+                options: [
+                    "Kelereng menyentuh dasar tabung lebih dahulu karena lebih berat",
+                    "Bulu ayam menyentuh dasar tabung lebih dahulu karena lebih ringan",
+                    "Keduanya menyentuh dasar tabung pada saat yang persis bersamaan",
+                    "Bulu ayam tidak dapat jatuh karena berada di ruang hampa"
+                ],
+                correct: 2,
+                explanation: "Dalam ruang hampa (vakum), gesekan udara bernilai nol. Kedua benda hanya dipengaruhi oleh percepatan gravitasi yang sama ($g$), sehingga percepatan dan waktu jatuhnya persis sama."
+            },
+            {
+                q: "4. Sebuah buah kelapa jatuh bebas dari pohon setinggi $20\\text{ meter}$. Kecepatan buah kelapa tepat saat menyentuh tanah adalah... ($g = 10\\text{ m/s}^2$)",
+                options: [
+                    "$10\\text{ m/s}$",
+                    "$20\\text{ m/s}$",
+                    "$40\\text{ m/s}$",
+                    "$200\\text{ m/s}$"
+                ],
+                correct: 1,
+                explanation: "Menggunakan rumus $v_t = \\sqrt{2 g h} = \\sqrt{2 \\times 10 \\times 20} = \\sqrt{400} = 20\\text{ m/s}$."
+            },
+            {
+                q: "5. Manakah bentuk grafik kecepatan terhadap waktu ($v-t$) yang paling tepat untuk benda yang mengalami Gerak Jatuh Bebas?",
+                options: [
+                    "Garis lurus mendatar/horisontal (kecepatan konstan)",
+                    "Garis lurus miring ke atas melintasi titik asal (kecepatan bertambah linier)",
+                    "Garis kurva melengkung ke bawah mendekati nol",
+                    "Garis tegak lurus vertikal"
+                ],
+                correct: 1,
+                explanation: "Karena percepatan gravitasi bernilai konstan ($a = +g$), kecepatan bertambah secara linier seiring berjalannya waktu ($v_t = g \\cdot t$), menghasilkan grafik linier naik."
+            }
+        ];
+
+        let userAnswers = {};
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = '';
+
+            quizData.forEach((item, index) => {
+                const qCard = document.createElement('div');
+                qCard.className = 'glass-card p-5 rounded-2xl border border-slate-200 space-y-3';
+                
+                let optionsHTML = '';
+                item.options.forEach((opt, optIdx) => {
+                    optionsHTML += `
+                        <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer transition text-sm">
+                            <input type="radio" name="quiz-q-${index}" value="${optIdx}" onchange="selectAnswer(${index}, ${optIdx})" class="accent-brand-600">
+                            <span class="text-slate-700">${opt}</span>
+                        </label>
+                    `;
+                });
+
+                qCard.innerHTML = `
+                    <p class="font-bold text-slate-900 text-sm sm:text-base">${item.q}</p>
+                    <div class="space-y-2">${optionsHTML}</div>
+                    <div id="quiz-explain-${index}" class="hidden p-3 rounded-xl text-xs space-y-1 mt-2"></div>
+                `;
+                container.appendChild(qCard);
+            });
+
+            if (window.MathJax) MathJax.typesetPromise();
+        }
+
+        function selectAnswer(qIdx, optIdx) {
+            userAnswers[qIdx] = optIdx;
+        }
+
+        function submitQuiz() {
+            let score = 0;
+            const pointsPerQ = 100 / quizData.length;
+
+            quizData.forEach((item, index) => {
+                const explainBox = document.getElementById(`quiz-explain-${index}`);
+                explainBox.classList.remove('hidden', 'bg-emerald-50', 'bg-rose-50', 'text-emerald-800', 'text-rose-800');
+
+                if (userAnswers[index] === item.correct) {
+                    score += pointsPerQ;
+                    explainBox.classList.add('bg-emerald-50', 'text-emerald-900', 'border', 'border-emerald-200');
+                    explainBox.innerHTML = `<strong><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Jawaban Benar!</strong><p>${item.explanation}</p>`;
+                } else {
+                    explainBox.classList.add('bg-rose-50', 'text-rose-900', 'border', 'border-rose-200');
+                    explainBox.innerHTML = `<strong><i class="fa-solid fa-circle-xmark text-rose-600 mr-1"></i> Jawaban Kurang Tepat.</strong><p>${item.explanation}</p>`;
+                }
+            });
+
+            const scoreBadge = document.getElementById('quiz-score-badge');
+            const scoreVal = document.getElementById('quiz-score-val');
+            scoreBadge.classList.remove('hidden');
+            scoreVal.innerText = score.toFixed(0);
+
+            if (window.MathJax) MathJax.typesetPromise();
+        }
+
+        function resetQuiz() {
+            userAnswers = {};
+            document.getElementById('quiz-score-badge').classList.add('hidden');
+            renderQuiz();
+        }
+
+        // --- 5. INITIALIZATION ON PAGE LOAD ---
+        window.onload = function () {
+            initCharts();
+            resetSimulation();
+            renderQuiz();
+        };
+
+        window.addEventListener('resize', () => {
+            if (canvas) {
+                drawCanvas();
+            }
+        });
+    </script>
+</body>
+</html>
